@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Quiz - QuizMaster</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container-centered" style="max-width: 760px;">
+        <div class="breadcrumb">
+            <a th:href="@{/student/dashboard}">Dashboard</a>
+            <span class="separator">&rarr;</span>
+            <span class="current" th:text="${quiz.title}">Quiz Start</span>
+        </div>
+
+        <div class="card" style="margin-top: 24px; padding: 40px;">
+            <div style="text-align: center; margin-bottom: 32px;">
+                <span class="quiz-topic-badge" th:text="${quiz.topic}">Topic</span>
+                <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-top: 16px; margin-bottom: 12px;" th:text="${quiz.title}">Quiz Title</h1>
+                <p style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6;" th:text="${quiz.description}">Description</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px; margin-bottom: 32px; background: rgba(13, 17, 36, 0.5); padding: 24px; border-radius: 16px; border: 1px solid var(--border);">
+                <div style="text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Duration</div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary-light); margin-top: 4px;" th:text="${quiz.durationMinutes} + ' Mins'">0 Mins</div>
+                </div>
+                <div style="text-align: center; border-left: 1px solid var(--border);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Passing Score</div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: var(--secondary); margin-top: 4px;" th:text="${quiz.passingScore} + '%'">0%</div>
+                </div>
+                <div style="text-align: center; border-left: 1px solid var(--border);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Questions</div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: var(--info); margin-top: 4px;" th:text="${quiz.questions.size()}">0</div>
+                </div>
+            </div>
+
+            <div class="alert alert-info" style="margin-bottom: 32px;">
+                <i class="fa-solid fa-circle-info" style="font-size: 1.2rem;"></i>
+                <div>
+                    <strong>Instructions:</strong> Once you click start, the timer will begin. If you navigate away or close the page, your progress will be auto-submitted when the time runs out.
+                </div>
+            </div>
+
+            <form th:action="@{'/student/quiz/' + ${quiz.id} + '/start'}" method="post">
+                <button type="submit" class="btn btn-primary btn-lg btn-full"><i class="fa-solid fa-play"></i> Start Quiz Now</button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <a th:href="@{/student/dashboard}" class="btn-logout" style="display: inline-flex; width: auto; border: none; background: transparent;"><i class="fa-solid fa-arrow-left"></i> Cancel and Return</a>
+            </div>
+            
+            <!-- Previous Attempts -->
+            <div th:if="${not #lists.isEmpty(previousAttempts)}" style="margin-top: 40px; border-top: 1px solid var(--border); padding-top: 24px;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;"><i class="fa-solid fa-clock-rotate-left"></i> Your Previous Attempts</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div th:each="attempt : ${previousAttempts}" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: rgba(13, 17, 36, 0.4); border-radius: 12px; border: 1px solid var(--border);">
+                        <span style="font-size: 0.9rem; color: var(--text-secondary);" th:text="${#temporals.format(attempt.startedAt, 'dd-MM-yyyy HH:mm')}">Date</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <strong style="font-size: 1rem;" th:classappend="${attempt.passed ? 'text-secondary' : 'text-danger'}" th:text="${attempt.percentage} + '%'">0%</strong>
+                            <span class="badge badge-success" th:if="${attempt.passed}">Passed</span>
+                            <span class="badge badge-danger" th:unless="${attempt.passed}">Failed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

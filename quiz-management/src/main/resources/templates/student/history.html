@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My History - QuizMaster</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container-centered">
+        <div class="breadcrumb">
+            <a th:href="@{/student/dashboard}">Dashboard</a>
+            <span class="separator">&rarr;</span>
+            <span class="current">Quiz History</span>
+        </div>
+
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 32px;">
+            <div>
+                <h1>My Quiz History</h1>
+                <p>Track all your previous attempts, scores, and grading details here.</p>
+            </div>
+            <a th:href="@{/student/dashboard}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        </div>
+
+        <div class="table-container">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Quiz Title</th>
+                            <th>Topic</th>
+                            <th>Date Taken</th>
+                            <th>Score obtained</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="attempt : ${attempts}">
+                            <td><strong th:text="${attempt.quiz.title}">Quiz Title</strong></td>
+                            <td th:text="${attempt.quiz.topic}">Topic</td>
+                            <td th:text="${#temporals.format(attempt.startedAt, 'dd-MMM-yyyy HH:mm')}">Date</td>
+                            <td>
+                                <strong th:text="${attempt.score} + '/' + ${attempt.totalMarks} + ' (' + ${attempt.percentage} + '%)'"></strong>
+                            </td>
+                            <td>
+                                <span class="badge badge-success" th:if="${attempt.passed}"><i class="fa-solid fa-circle-check"></i> Passed</span>
+                                <span class="badge badge-danger" th:unless="${attempt.passed}"><i class="fa-solid fa-circle-xmark"></i> Failed</span>
+                            </td>
+                            <td>
+                                <a th:href="@{'/student/quiz/attempt/' + ${attempt.id} + '/result'}" class="btn btn-outline btn-sm"><i class="fa-solid fa-magnifying-glass"></i> View Details</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(attempts)}">
+                            <td colspan="6" style="text-align: center; padding: 48px; color: var(--text-muted);">
+                                <i class="fa-regular fa-clock" style="font-size: 2.5rem; margin-bottom: 16px; display: block; color: var(--text-dim);"></i>
+                                No quiz attempts found in your history.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

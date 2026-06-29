@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Result - QuizMaster</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container-centered quiz-take-layout">
+        <div class="breadcrumb">
+            <a th:href="@{/student/dashboard}">Dashboard</a>
+            <span class="separator">&rarr;</span>
+            <a th:href="@{/student/history}">History</a>
+            <span class="separator">&rarr;</span>
+            <span class="current">Results</span>
+        </div>
+
+        <div class="result-hero mt-4">
+            <div class="result-score-circle" th:classappend="${attempt.passed ? 'passed' : 'failed'}">
+                <span class="score-percent" th:text="${attempt.percentage} + '%'">0%</span>
+                <span class="score-label" th:text="${attempt.passed ? 'Passed' : 'Failed'}">Status</span>
+            </div>
+            
+            <h1 class="result-title">Result: <span th:text="${quiz.title}">Quiz Title</span></h1>
+            
+            <div th:if="${attempt.status.name() == 'TIMED_OUT'}" class="alert alert-error" style="justify-content: center; max-width: 500px; margin: 16px auto;">
+                <i class="fa-solid fa-hourglass-end"></i> Auto-submitted because time ran out.
+            </div>
+            
+            <h3 th:if="${attempt.passed}" style="color: var(--secondary); font-weight: 700; margin-bottom: 8px;">
+                <i class="fa-solid fa-circle-check"></i> Congratulations! You passed this quiz.
+            </h3>
+            <h3 th:unless="${attempt.passed}" style="color: var(--danger); font-weight: 700; margin-bottom: 8px;">
+                <i class="fa-solid fa-triangle-exclamation"></i> You did not meet the passing criteria.
+            </h3>
+            
+            <div class="result-meta">
+                <div class="result-meta-item">
+                    <div class="result-meta-value" th:text="${attempt.score} + ' / ' + ${attempt.totalMarks}">0 / 0</div>
+                    <div class="result-meta-label">Total Score</div>
+                </div>
+                <div class="result-meta-item" style="border-left: 1px solid var(--border); padding-left: 32px;">
+                    <div class="result-meta-value" th:text="${quiz.passingScore} + '%'">0%</div>
+                    <div class="result-meta-label">Passing Mark</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 32px;">
+                <a th:href="@{/student/dashboard}" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i> Return to Dashboard</a>
+            </div>
+        </div>
+
+        <h2 style="font-size: 1.4rem; font-weight: 800; margin-top: 40px; margin-bottom: 20px;"><i class="fa-solid fa-list-check" style="color: var(--primary-light); margin-right: 8px;"></i> Answer Review</h2>
+        
+        <div th:each="ans, stat : ${userAnswers}" class="review-card" th:classappend="${ans.isCorrect == null ? 'pending' : (ans.isCorrect ? 'correct' : 'incorrect')}">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px;">
+                <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">
+                    <span th:text="'Q' + ${stat.count} + '. '">Q1.</span>
+                    <span th:text="${ans.question.questionText}">Question Text</span>
+                </h4>
+                <div>
+                    <span th:if="${ans.isCorrect != null}" class="badge" th:classappend="${ans.isCorrect ? 'badge-success' : 'badge-danger'}">
+                        <i class="fa-solid" th:classappend="${ans.isCorrect ? 'fa-check' : 'fa-xmark'}"></i>
+                        [[${ans.marksObtained}]] / [[${ans.question.marks}]] Marks
+                    </span>
+                    <span th:if="${ans.isCorrect == null}" class="badge badge-warning">
+                        <i class="fa-solid fa-clock"></i> Pending Grade
+                    </span>
+                </div>
+            </div>
+
+            <!-- Optional question image served locally from host admin storage -->
+            <div th:if="${ans.question.imagePath != null}" class="question-image-container" style="margin-bottom: 16px;">
+                <img th:src="${ans.question.imagePath}" class="question-image" alt="Question Image" style="max-height: 250px;">
+            </div>
+            
+            <div style="padding: 16px; background: rgba(13, 17, 36, 0.45); border-radius: 12px; border: 1px solid var(--border);">
+                <!-- User answer rendering -->
+                <div style="margin-bottom: 12px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Your Answer:</span>
+                    
+                    <span th:if="${ans.question.questionType.name() == 'SINGLE_CHOICE'}" 
+                          th:text="${ans.selectedOption != null ? ans.selectedOption.optionText : 'Not answered'}"
+                          style="font-size: 0.95rem; color: var(--text-secondary);"></span>
+                    
+                    <ul th:if="${ans.question.questionType.name() == 'MULTIPLE_CHOICE'}" style="margin: 0; padding-left: 20px; color: var(--text-secondary);">
+                        <li th:each="opt : ${ans.selectedOptions}" th:text="${opt.optionText}"></li>
+                        <li th:if="${#lists.isEmpty(ans.selectedOptions)}">Not answered</li>
+                    </ul>
+                    
+                    <p th:if="${ans.question.questionType.name() == 'SHORT_ANSWER' or ans.question.questionType.name() == 'LONG_ANSWER'}" 
+                       th:text="${ans.textAnswer != null and !ans.textAnswer.isBlank() ? ans.textAnswer : 'Not answered'}" 
+                       style="font-size: 0.95rem; color: var(--text-secondary); white-space: pre-wrap;"></p>
+                </div>
+                
+                <!-- Correct answer rendering (only shown if student did not get it correct, and not long answer) -->
+                <div th:if="${ans.isCorrect != null and !ans.isCorrect and ans.question.questionType.name() != 'LONG_ANSWER'}" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); color: #34d399;">
+                    <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Correct Answer:</span>
+                    
+                    <span th:if="${ans.question.questionType.name() == 'SINGLE_CHOICE'}">
+                        <th:block th:each="opt : ${ans.question.options}" th:if="${opt.correct}" th:text="${opt.optionText}"></th:block>
+                    </span>
+                    
+                    <ul th:if="${ans.question.questionType.name() == 'MULTIPLE_CHOICE'}" style="margin: 0; padding-left: 20px;">
+                        <th:block th:each="opt : ${ans.question.options}" th:if="${opt.correct}">
+                            <li th:text="${opt.optionText}"></li>
+                        </th:block>
+                    </ul>
+                    
+                    <span th:if="${ans.question.questionType.name() == 'SHORT_ANSWER'}" th:text="${ans.question.correctAnswer}"></span>
+                </div>
+                
+                <!-- Admin Feedback & Manual Grade (specifically for long answer) -->
+                <div th:if="${ans.adminFeedback != null or ans.question.questionType.name() == 'LONG_ANSWER'}" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);">
+                    <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Teacher Feedback / Grading:</span>
+                    <p style="color: var(--text-secondary); font-style: italic; font-size: 0.95rem;" th:text="${ans.adminFeedback != null and !ans.adminFeedback.isBlank() ? ans.adminFeedback : 'No feedback left yet.'}"></p>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">
+                        Manual Score: <strong th:text="${ans.manualScore != null ? ans.manualScore : '0'} + ' / ' + ${ans.question.marks}"></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

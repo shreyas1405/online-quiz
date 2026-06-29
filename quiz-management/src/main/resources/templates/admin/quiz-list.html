@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Quizzes - QuizMaster</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <div class="logo-text">
+                    QuizMaster
+                    <span>ADMIN PANEL</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Management</div>
+                <a th:href="@{/admin/dashboard}" class="nav-link">
+                    <i class="fa-solid fa-chart-pie nav-icon"></i> Dashboard
+                </a>
+                <a th:href="@{/admin/quizzes}" class="nav-link active">
+                    <i class="fa-solid fa-book nav-icon"></i> Manage Quizzes
+                </a>
+                <a th:href="@{/admin/users}" class="nav-link">
+                    <i class="fa-solid fa-users nav-icon"></i> Manage Students
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">A</div>
+                    <div class="user-details">
+                        <div class="user-name">Administrator</div>
+                        <div class="user-role">Host Device Storage</div>
+                    </div>
+                </div>
+                <form th:action="@{/logout}" method="post" style="margin: 0;">
+                    <button type="submit" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div th:if="${success}" class="alert alert-success">
+                <i class="fa-solid fa-circle-check"></i>
+                <span th:text="${success}"></span>
+            </div>
+            
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                <div>
+                    <h1>Manage Quizzes</h1>
+                    <p>Create, edit, delete, or manage questions for active and inactive quizzes.</p>
+                </div>
+                <a th:href="@{/admin/quizzes/create}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Create New Quiz</a>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Quiz Title</th>
+                                <th>Topic</th>
+                                <th>Duration</th>
+                                <th>Questions</th>
+                                <th>Status</th>
+                                <th style="text-align: right; padding-right: 32px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="quiz : ${quizzes}">
+                                <td><strong style="color: var(--text-primary);" th:text="${quiz.title}">Quiz Title</strong></td>
+                                <td th:text="${quiz.topic}">Topic</td>
+                                <td th:text="${quiz.durationMinutes} + ' mins'">0 mins</td>
+                                <td th:text="${quiz.questions.size()}">0</td>
+                                <td>
+                                    <span class="badge badge-success" th:if="${quiz.active}"><i class="fa-solid fa-play"></i> Active</span>
+                                    <span class="badge badge-danger" th:unless="${quiz.active}"><i class="fa-solid fa-stop"></i> Inactive</span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; justify-content: flex-end; gap: 10px; padding-right: 8px;">
+                                        <a th:href="@{'/admin/quizzes/' + ${quiz.id} + '/edit'}" class="btn btn-outline btn-sm">
+                                            <i class="fa-solid fa-pen"></i> Edit
+                                        </a>
+                                        <a th:href="@{'/admin/quizzes/' + ${quiz.id} + '/questions'}" class="btn btn-primary btn-sm" style="background: rgba(139, 92, 246, 0.15); color: var(--primary-light) !important; border: 1px solid rgba(139, 92, 246, 0.35); box-shadow: none;">
+                                            <i class="fa-solid fa-circle-question"></i> Questions
+                                        </a>
+                                        <form th:action="@{'/admin/quizzes/' + ${quiz.id} + '/delete'}" method="post" onsubmit="return confirm('Are you sure you want to delete this quiz? All attempts and questions will be permanently deleted.');" style="margin: 0;">
+                                            <button type="submit" class="btn btn-danger btn-sm" style="box-shadow: none;">
+                                                <i class="fa-solid fa-trash-can"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(quizzes)}">
+                                <td colspan="6" style="text-align: center; padding: 48px; color: var(--text-muted);">
+                                    <i class="fa-solid fa-book" style="font-size: 2.5rem; margin-bottom: 16px; display: block; color: var(--text-dim);"></i>
+                                    No quizzes created yet. Get started by clicking "+ Create New Quiz".
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

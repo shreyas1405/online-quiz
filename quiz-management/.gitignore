@@ -1,0 +1,21 @@
+# Build output
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven wrapper (jar)
+.mvn/wrapper/maven-wrapper.jar
+
+# Uploads (local storage - don't push user data)
+uploads/
+
+# Logs
+*.log

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Questions - QuizMaster</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <div class="logo-text">
+                    QuizMaster
+                    <span>ADMIN PANEL</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Management</div>
+                <a th:href="@{/admin/dashboard}" class="nav-link">
+                    <i class="fa-solid fa-chart-pie nav-icon"></i> Dashboard
+                </a>
+                <a th:href="@{/admin/quizzes}" class="nav-link active">
+                    <i class="fa-solid fa-book nav-icon"></i> Manage Quizzes
+                </a>
+                <a th:href="@{/admin/users}" class="nav-link">
+                    <i class="fa-solid fa-users nav-icon"></i> Manage Students
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">A</div>
+                    <div class="user-details">
+                        <div class="user-name">Administrator</div>
+                        <div class="user-role">Host Device Storage</div>
+                    </div>
+                </div>
+                <form th:action="@{/logout}" method="post" style="margin: 0;">
+                    <button type="submit" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="breadcrumb">
+                <a th:href="@{/admin/quizzes}">Quizzes</a>
+                <span class="separator">&rarr;</span>
+                <span class="current">Manage Questions</span>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success">
+                <i class="fa-solid fa-circle-check"></i>
+                <span th:text="${success}"></span>
+            </div>
+
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 32px;">
+                <div>
+                    <h1 th:text="'Questions: ' + ${quiz.title}">Questions</h1>
+                    <p>Total questions: <strong th:text="${questions.size()}">0</strong> | Duration: <strong th:text="${quiz.durationMinutes} + ' mins'"></strong></p>
+                </div>
+                <a th:href="@{/admin/quizzes}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to Quizzes</a>
+            </div>
+
+            <!-- List of Questions -->
+            <div style="margin-bottom: 40px;">
+                <div th:each="q, stat : ${questions}" class="question-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 12px;">
+                        <div>
+                            <div class="question-number">
+                                <div class="num-badge" th:text="${stat.count}">1</div>
+                                <span>Question</span>
+                            </div>
+                            <span class="question-type-tag" th:classappend="${'qtype-' + #strings.toLowerCase(#strings.substringBefore(q.questionType.name(), '_'))}" th:text="${q.questionType.displayName}">Single Choice</span>
+                            <span class="badge badge-primary" style="margin-left: 8px;">[[${q.marks}]] Mark[[${q.marks > 1 ? 's' : ''}]]</span>
+                        </div>
+                        <form th:action="@{'/admin/questions/' + ${q.id} + '/delete'}" method="post" style="margin: 0;" onsubmit="return confirm('Are you sure you want to delete this question?');">
+                            <input type="hidden" name="quizId" th:value="${quiz.id}" />
+                            <button type="submit" class="btn btn-danger btn-sm" style="box-shadow: none;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                        </form>
+                    </div>
+                    
+                    <div class="question-text" th:text="${q.questionText}">Question text goes here.</div>
+                    
+                    <!-- Question Image display if uploaded -->
+                    <div th:if="${q.imagePath != null}" class="question-image-container" style="max-width: 400px; margin-top: 12px; margin-bottom: 18px;">
+                        <img th:src="${q.imagePath}" class="question-image" alt="Question Image" style="max-height: 200px;">
+                    </div>
+                    
+                    <!-- Choices Options List -->
+                    <div th:if="${q.questionType.name() == 'SINGLE_CHOICE' or q.questionType.name() == 'MULTIPLE_CHOICE'}" style="margin-top: 16px;">
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div th:each="opt : ${q.options}" style="padding: 12px 16px; background: rgba(13, 17, 36, 0.45); border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                                <span th:text="${opt.optionText}" style="color: var(--text-secondary);"></span>
+                                <span th:if="${opt.correct}" class="badge badge-success"><i class="fa-solid fa-check"></i> Correct</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Short answer correct answer -->
+                    <div th:if="${q.questionType.name() == 'SHORT_ANSWER'}" style="margin-top: 16px; padding: 12px 16px; background: rgba(16, 185, 129, 0.08); border-radius: 8px; border: 1px dashed rgba(16, 185, 129, 0.3); color: #34d399; font-size: 0.95rem;">
+                        <i class="fa-solid fa-key"></i> Exact Correct Answer: <strong th:text="${q.correctAnswer}"></strong>
+                    </div>
+                    
+                    <!-- Long answer info -->
+                    <div th:if="${q.questionType.name() == 'LONG_ANSWER'}" style="margin-top: 16px; padding: 12px 16px; background: rgba(245, 158, 11, 0.08); border-radius: 8px; border: 1px dashed rgba(245, 158, 11, 0.3); color: #fbbf24; font-size: 0.95rem;">
+                        <i class="fa-solid fa-user-pen"></i> Written response (requires manual grading by administrator)
+                    </div>
+                </div>
+                
+                <div th:if="${#lists.isEmpty(questions)}" style="padding: 48px; text-align: center; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px dashed var(--border); color: var(--text-muted);">
+                    <i class="fa-regular fa-comments" style="font-size: 2.5rem; margin-bottom: 16px; display: block; color: var(--text-dim);"></i>
+                    <p>No questions added to this quiz yet. Add your first question below!</p>
+                </div>
+            </div>
+
+            <!-- Form to Add New Question -->
+            <div class="question-form-card">
+                <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 24px;"><i class="fa-solid fa-plus-circle" style="color: var(--primary-light); margin-right: 8px;"></i> Add New Question</h2>
+                
+                <form th:action="@{'/admin/quizzes/' + ${quiz.id} + '/questions/add'}" th:object="${newQuestion}" method="post" enctype="multipart/form-data">
+                    
+                    <div class="form-group">
+                        <label for="questionText" class="form-label">Question Content <span class="required">*</span></label>
+                        <textarea id="questionText" th:field="*{questionText}" class="form-control" placeholder="Type the question content or math problem here..." rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="questionType" class="form-label">Question Type <span class="required">*</span></label>
+                            <select id="questionType" th:field="*{questionType}" class="form-control" required onchange="toggleFields()">
+                                <option th:each="type : ${questionTypes}" th:value="${type}" th:text="${type.displayName}"></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="marks" class="form-label">Marks / Weight <span class="required">*</span></label>
+                            <input type="number" id="marks" th:field="*{marks}" class="form-control" required min="1" value="1">
+                        </div>
+                    </div>
+                    
+                    <!-- Question Image Upload (stored locally on admin device) -->
+                    <div class="form-group">
+                        <label for="imageFile" class="form-label">Upload Question Image (Optional)</label>
+                        <input type="file" id="imageFile" name="imageFile" class="form-control" accept="image/*" style="padding: 10px;">
+                        <span class="form-hint">Image will be saved on this admin device and loaded dynamically for students.</span>
+                    </div>
+
+                    <!-- Multiple Options Builder -->
+                    <div id="optionsSection" class="options-builder" style="background: rgba(13, 17, 36, 0.45); border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid var(--border);">
+                        <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;"><i class="fa-solid fa-list-ol"></i> Multiple Choice Options</h4>
+                        <div th:each="i : ${#numbers.sequence(1, 4)}" class="option-builder-row">
+                            <input type="text" th:name="'optionText_' + ${i}" class="form-control" th:placeholder="'Option ' + ${i} + ' text'">
+                            <label class="option-correct-check">
+                                <input type="checkbox" th:name="'optionCorrect_' + ${i}">
+                                <span>Correct?</span>
+                            </label>
+                        </div>
+                        <span class="form-hint">Fill in the fields and check "Correct?" for correct answers (check multiple if Multiple Choice type).</span>
+                    </div>
+                    
+                    <!-- Short Answer auto-grade input -->
+                    <div id="shortAnswerSection" style="display: none; background: rgba(13, 17, 36, 0.45); border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid var(--border);">
+                        <div class="form-group" style="margin: 0;">
+                            <label for="correctAnswer" class="form-label">Exact Correct Answer <span class="required">*</span></label>
+                            <input type="text" id="correctAnswer" th:field="*{correctAnswer}" class="form-control" placeholder="Provide the exact text response (case-insensitive) for automatic grading">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top: 12px;"><i class="fa-solid fa-floppy-disk"></i> Add Question to Quiz</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleFields() {
+            var type = document.getElementById('questionType').value;
+            var optSection = document.getElementById('optionsSection');
+            var shortSection = document.getElementById('shortAnswerSection');
+            
+            if (type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE') {
+                optSection.style.display = 'block';
+                shortSection.style.display = 'none';
+            } else if (type === 'SHORT_ANSWER') {
+                optSection.style.display = 'none';
+                shortSection.style.display = 'block';
+            } else {
+                optSection.style.display = 'none';
+                shortSection.style.display = 'none';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', toggleFields);
+    </script>
+</body>
+</html>

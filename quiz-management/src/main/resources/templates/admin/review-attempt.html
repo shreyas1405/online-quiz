@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Attempt - QuizMaster</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <div class="logo-text">
+                    QuizMaster
+                    <span>ADMIN PANEL</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Management</div>
+                <a th:href="@{/admin/dashboard}" class="nav-link active">
+                    <i class="fa-solid fa-chart-pie nav-icon"></i> Dashboard
+                </a>
+                <a th:href="@{/admin/quizzes}" class="nav-link">
+                    <i class="fa-solid fa-book nav-icon"></i> Manage Quizzes
+                </a>
+                <a th:href="@{/admin/users}" class="nav-link">
+                    <i class="fa-solid fa-users nav-icon"></i> Manage Students
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">A</div>
+                    <div class="user-details">
+                        <div class="user-name">Administrator</div>
+                        <div class="user-role">Host Device Storage</div>
+                    </div>
+                </div>
+                <form th:action="@{/logout}" method="post" style="margin: 0;">
+                    <button type="submit" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="breadcrumb">
+                <a th:href="@{/admin/dashboard}">Dashboard</a>
+                <span class="separator">&rarr;</span>
+                <span class="current">Review Attempt</span>
+            </div>
+            
+            <div th:if="${success}" class="alert alert-success">
+                <i class="fa-solid fa-circle-check"></i>
+                <span th:text="${success}"></span>
+            </div>
+
+            <div class="page-header">
+                <h1>Review Student Attempt</h1>
+                <p>Grade long answer questions and leave detailed feedback for students.</p>
+            </div>
+            
+            <!-- Quiz metadata summary card -->
+            <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; margin-bottom: 40px; padding: 28px 36px;">
+                <div>
+                    <h3 style="font-size: 1.4rem; font-weight: 800; color: var(--primary-light); margin-bottom: 8px;" th:text="${attempt.quiz.title}">Quiz Title</h3>
+                    <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 4px;">
+                        Student: <strong th:text="${attempt.user.fullName}">John Doe</strong> (<span th:text="${attempt.user.email}">john@email.com</span>)
+                    </p>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">
+                        Attempt Taken: <span th:text="${#temporals.format(attempt.startedAt, 'dd-MMM-yyyy HH:mm')}">Date</span>
+                    </p>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 28px;">
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Score</div>
+                        <div style="font-size: 2.2rem; font-weight: 800;" th:classappend="${attempt.passed ? 'text-secondary' : 'text-danger'}" th:text="${attempt.percentage} + '%'">0%</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);" th:text="${attempt.score} + ' / ' + ${attempt.totalMarks} + ' marks'"></div>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <span class="badge badge-success" th:if="${attempt.passed}"><i class="fa-solid fa-circle-check"></i> Passed</span>
+                        <span class="badge badge-danger" th:unless="${attempt.passed}"><i class="fa-solid fa-circle-xmark"></i> Failed</span>
+                    </div>
+                </div>
+            </div>
+
+            <h2 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 24px;"><i class="fa-solid fa-signature" style="color: var(--accent); margin-right: 8px;"></i> Long Answers Requiring Manual Grading</h2>
+            
+            <div th:each="ans : ${longAnswers}" class="review-card pending" style="border-left-width: 6px; padding: 32px;">
+                <h4 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;" th:text="${ans.question.questionText}">Question Text</h4>
+                
+                <!-- Optional question image served locally from host admin storage -->
+                <div th:if="${ans.question.imagePath != null}" class="question-image-container" style="max-width: 400px; margin-bottom: 18px;">
+                    <img th:src="${ans.question.imagePath}" class="question-image" alt="Question Image" style="max-height: 200px;">
+                </div>
+
+                <div style="background: rgba(13, 17, 36, 0.5); padding: 18px 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px;">
+                    <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Student's Written Response:</span>
+                    <p style="font-size: 0.95rem; color: var(--text-secondary); white-space: pre-wrap; line-height: 1.6;" 
+                       th:text="${ans.textAnswer != null and !ans.textAnswer.isBlank() ? ans.textAnswer : '(No answer provided)'}"></p>
+                </div>
+                
+                <form th:action="@{'/admin/answers/' + ${ans.id} + '/grade'}" method="post" style="background: rgba(13, 17, 36, 0.25); padding: 24px; border-radius: 16px; border: 1px solid var(--border);">
+                    <input type="hidden" name="attemptId" th:value="${attempt.id}" />
+                    
+                    <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 18px; flex-wrap: wrap;">
+                        <label class="form-label" style="margin: 0; font-weight: 700; font-size: 0.95rem;">Award Score:</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="number" name="score" class="form-control" style="width: 100px; padding: 8px 12px;" min="0" th:max="${ans.question.marks}" th:value="${ans.manualScore != null ? ans.manualScore : 0}" required>
+                            <span style="color: var(--text-muted); font-size: 0.95rem;"> / [[${ans.question.marks}]] Marks</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Feedback Comments (Optional)</label>
+                        <textarea name="feedback" class="form-control" rows="3" placeholder="Leave comments, corrections, or grading feedback here..." th:text="${ans.adminFeedback}"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-circle-check"></i> Save Awarded Grade</button>
+                </form>
+            </div>
+            
+            <div th:if="${#lists.isEmpty(longAnswers)}" style="padding: 48px; text-align: center; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px dashed var(--border); color: var(--text-muted);">
+                <i class="fa-regular fa-folder-open" style="font-size: 2.5rem; margin-bottom: 16px; display: block; color: var(--text-dim);"></i>
+                <p>No long answers to review or grade for this attempt.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Students - QuizMaster</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <div class="logo-text">
+                    QuizMaster
+                    <span>ADMIN PANEL</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Management</div>
+                <a th:href="@{/admin/dashboard}" class="nav-link">
+                    <i class="fa-solid fa-chart-pie nav-icon"></i> Dashboard
+                </a>
+                <a th:href="@{/admin/quizzes}" class="nav-link">
+                    <i class="fa-solid fa-book nav-icon"></i> Manage Quizzes
+                </a>
+                <a th:href="@{/admin/users}" class="nav-link active">
+                    <i class="fa-solid fa-users nav-icon"></i> Manage Students
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">A</div>
+                    <div class="user-details">
+                        <div class="user-name">Administrator</div>
+                        <div class="user-role">Host Device Storage</div>
+                    </div>
+                </div>
+                <form th:action="@{/logout}" method="post" style="margin: 0;">
+                    <button type="submit" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div th:if="${success}" class="alert alert-success">
+                <i class="fa-solid fa-circle-check"></i>
+                <span th:text="${success}"></span>
+            </div>
+
+            <div class="page-header">
+                <h1>Registered Students</h1>
+                <p>Manage access credentials and active accounts of students registered on this administrator device.</p>
+            </div>
+
+            <div class="table-container">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Full Name</th>
+                                <th>Email Address</th>
+                                <th>Registration Date</th>
+                                <th>Account Status</th>
+                                <th style="text-align: right; padding-right: 32px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="student : ${students}">
+                                <td th:text="'#' + ${student.id}">#1</td>
+                                <td><strong style="color: var(--text-primary);" th:text="${student.fullName}">Student Name</strong></td>
+                                <td th:text="${student.email}">student@email.com</td>
+                                <td th:text="${#temporals.format(student.createdAt, 'dd-MMM-yyyy')}">Date</td>
+                                <td>
+                                    <span class="badge badge-success" th:if="${student.enabled}"><i class="fa-solid fa-circle-check"></i> Active</span>
+                                    <span class="badge badge-danger" th:unless="${student.enabled}"><i class="fa-solid fa-circle-minus"></i> Suspended</span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; justify-content: flex-end; padding-right: 8px;">
+                                        <form th:action="@{'/admin/users/' + ${student.id} + '/toggle'}" method="post" style="margin: 0;">
+                                            <button type="submit" class="btn btn-outline btn-sm" th:classappend="${student.enabled ? 'danger' : ''}" style="width: 110px;">
+                                                <i class="fa-solid" th:classappend="${student.enabled ? 'fa-user-slash' : 'fa-user-check'}"></i>
+                                                <span th:text="${student.enabled ? 'Suspend' : 'Activate'}">Toggle</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(students)}">
+                                <td colspan="6" style="text-align: center; padding: 48px; color: var(--text-muted);">
+                                    <i class="fa-solid fa-users" style="font-size: 2.5rem; margin-bottom: 16px; display: block; color: var(--text-dim);"></i>
+                                    No registered students found.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - QuizMaster</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container-centered">
+        <!-- Top navbar header -->
+        <header class="card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding: 20px 32px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div class="user-avatar" th:text="${#strings.substring(user.fullName, 0, 1).toUpperCase()}">S</div>
+                <div>
+                    <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);" th:text="${user.fullName}">Student Name</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);" th:text="${user.email}">student@email.com</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <a th:href="@{/student/history}" class="btn btn-outline btn-sm"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+                <form th:action="@{/logout}" method="post" style="margin: 0;">
+                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+                </form>
+            </div>
+        </header>
+
+        <div class="page-header">
+            <h1>Student Dashboard</h1>
+            <p>Welcome to QuizMaster! Test your knowledge by taking the available quizzes below.</p>
+        </div>
+
+        <section class="mb-4">
+            <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 24px;"><i class="fa-solid fa-rocket" style="color: var(--primary-light); margin-right: 8px;"></i> Available Quizzes</h2>
+            <div class="quiz-grid">
+                <div th:each="quiz : ${quizzes}" class="quiz-card">
+                    <div class="quiz-card-header">
+                        <span class="quiz-topic-badge" th:text="${quiz.topic}">Topic</span>
+                    </div>
+                    <h3 class="quiz-card-title" th:text="${quiz.title}">Quiz Title</h3>
+                    <p class="quiz-card-desc" th:text="${quiz.description}">Description</p>
+                    
+                    <div class="quiz-meta">
+                        <div class="quiz-meta-item">
+                            <i class="fa-regular fa-clock"></i>
+                            <span th:text="${quiz.durationMinutes} + ' Mins'">0 Mins</span>
+                        </div>
+                        <div class="quiz-meta-item">
+                            <i class="fa-regular fa-circle-check"></i>
+                            <span th:text="'Passing: ' + ${quiz.passingScore} + '%'">Passing: 0%</span>
+                        </div>
+                        <div class="quiz-meta-item">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span th:text="${quiz.questions.size()} + ' Questions'">0 Qs</span>
+                        </div>
+                    </div>
+                    <a th:href="@{'/student/quiz/' + ${quiz.id} + '/start'}" class="btn btn-primary btn-full" style="margin-top: 8px;"><i class="fa-solid fa-play"></i> Start Quiz</a>
+                </div>
+                
+                <div th:if="${#lists.isEmpty(quizzes)}" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 48px; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px dashed var(--border);">
+                    <i class="fa-regular fa-folder-open" style="font-size: 2.5rem; margin-bottom: 16px; color: var(--text-dim);"></i>
+                    <p>No active quizzes available at the moment.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mt-4" style="margin-top: 48px;">
+            <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 24px;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--info); margin-right: 8px;"></i> Recent Quiz Attempts</h2>
+            <div class="table-container">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Quiz Name</th>
+                                <th>Topic</th>
+                                <th>Date Attempted</th>
+                                <th>Score Obtained</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="attempt : ${recentAttempts}">
+                                <td><strong th:text="${attempt.quiz.title}">Quiz Title</strong></td>
+                                <td th:text="${attempt.quiz.topic}">Topic</td>
+                                <td th:text="${#temporals.format(attempt.startedAt, 'dd-MMM-yyyy HH:mm')}">Date</td>
+                                <td>
+                                    <strong th:text="${attempt.score} + '/' + ${attempt.totalMarks} + ' (' + ${attempt.percentage} + '%)'"></strong>
+                                </td>
+                                <td>
+                                    <span class="badge badge-success" th:if="${attempt.passed}"><i class="fa-solid fa-circle-check"></i> Passed</span>
+                                    <span class="badge badge-danger" th:unless="${attempt.passed}"><i class="fa-solid fa-circle-xmark"></i> Failed</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{'/student/quiz/attempt/' + ${attempt.id} + '/result'}" class="btn btn-outline btn-sm"><i class="fa-solid fa-magnifying-glass"></i> View Results</a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(recentAttempts)}">
+                                <td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">
+                                    You have not attempted any quizzes yet.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div style="margin-top: 24px; text-align: center;">
+                <a th:href="@{/student/history}" class="btn btn-outline"><i class="fa-solid fa-list"></i> View Complete Attempt History</a>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

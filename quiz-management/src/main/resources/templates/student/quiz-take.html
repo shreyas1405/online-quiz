@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taking Quiz - QuizMaster</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container-centered quiz-take-layout">
+        <!-- Sticky header bar with timer -->
+        <div class="quiz-header-bar">
+            <div>
+                <h2 class="quiz-title-bar" th:text="${quiz.title}">Quiz Title</h2>
+                <div class="quiz-progress-info">
+                    <span th:text="${questions.size()} + ' Questions'">0 Qs</span> |
+                    <span th:text="'Passing Grade: ' + ${quiz.passingScore} + '%'">Passing: 0%</span>
+                </div>
+            </div>
+            <div class="timer-display" id="timer" th:data-duration="${durationSeconds}">
+                <i class="fa-regular fa-clock timer-icon"></i>
+                <span class="timer-time">00:00</span>
+            </div>
+        </div>
+        
+        <form id="quiz-form" th:action="@{'/student/quiz/attempt/' + ${attempt.id} + '/submit'}" method="post">
+            <div th:each="question, stat : ${questions}" class="question-card">
+                
+                <div class="question-number">
+                    <div class="num-badge" th:text="${stat.count}">1</div>
+                    <span>Question</span>
+                </div>
+                
+                <div class="question-marks" th:text="${question.marks} + ' Mark' + (${question.marks > 1} ? 's' : '')">1 Mark</div>
+                
+                <div class="question-text" th:text="${question.questionText}">Question Text</div>
+                
+                <!-- Optional question image served locally from host admin storage -->
+                <div th:if="${question.imagePath != null}" class="question-image-container">
+                    <img th:src="${question.imagePath}" class="question-image" alt="Question Image">
+                </div>
+
+                <!-- SINGLE CHOICE OPTIONS -->
+                <div class="options-list" th:if="${question.questionType.name() == 'SINGLE_CHOICE'}">
+                    <label class="option-item" th:each="option : ${question.options}">
+                        <input type="radio" th:name="'q_' + ${question.id}" th:value="${option.id}">
+                        <span th:text="${option.optionText}">Option Text</span>
+                    </label>
+                </div>
+                
+                <!-- MULTIPLE CHOICE OPTIONS -->
+                <div class="options-list" th:if="${question.questionType.name() == 'MULTIPLE_CHOICE'}">
+                    <label class="option-item" th:each="option : ${question.options}">
+                        <input type="checkbox" th:name="'q_' + ${question.id}" th:value="${option.id}">
+                        <span th:text="${option.optionText}">Option Text</span>
+                    </label>
+                </div>
+                
+                <!-- SHORT ANSWER INPUT -->
+                <div th:if="${question.questionType.name() == 'SHORT_ANSWER'}">
+                    <input type="text" class="form-control" th:name="'q_' + ${question.id}" placeholder="Type your short answer here..." required>
+                </div>
+                
+                <!-- LONG ANSWER INPUT -->
+                <div th:if="${question.questionType.name() == 'LONG_ANSWER'}">
+                    <textarea class="form-control" th:name="'q_' + ${question.id}" rows="5" placeholder="Type your detailed answer here..." required></textarea>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-secondary btn-lg btn-full" style="margin-top: 32px;" onclick="return confirm('Are you sure you want to submit your quiz attempt?');">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Submit Quiz Attempt
+            </button>
+        </form>
+    </div>
+    
+    <script th:src="@{/js/quiz-timer.js}"></script>
+</body>
+</html>
